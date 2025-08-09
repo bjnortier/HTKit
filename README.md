@@ -36,14 +36,14 @@ The high-level classes applicable to clients are:
 1. `HTFileJob`: An object that managers the transcription of a file (as the samples from the audio file). **NB** The audio files samples must be in 16-bit, 44kHz PCM format for Whisper.
 1. `HTStreamingJob`: An object that manages the transcription of a live audio stream (e.g. from the microphone). It handles the audio conversion and buffering for you. The `HTMicrophoneStreamingEngine` class manages streaming audio samples from the microphone.
 
-The file job and streaming job acan be instantiated as follows:
+The file job and streaming job can be instantiated as follows:
 
 ``` swift
 let fileJob = HTFileJob(samples: samples)
 let streamingJob = HTStreamingJob(streamingEngine: HTMicrophoneStreamingEngine())
 ``` 
 
-Both job types have similar semantic to start, stop and cancel transcriptions:
+Both job types have similar semantics to start & stop transcriptions:
 
 ``` swift
 // Start the transcription. This will create a Swift Task to run the transcription in the background.
@@ -53,17 +53,16 @@ try await task.value
 // Stop the transcription. This will stop whisper.cpp 
 try await job.stop()
 // Restart the transcription. The transcription can be restarted with new options (e.g. using a different language)
-// or a different model. This will cancel the existing task, wait for it to finish, then create a new transcription task.
+// or a different model. This will stop the existing task, wait for it to finish, then create a new transcription task.
+// If the model is the same it will be re-used.
 let task2 = job.restart(modelPath: String, options: HTTranscriber.Options) 
 ```
 
 A streaming transcription can also be cleared. This will clear the transcription buffer and clear the current transcription:
 
 ``` swift
-try await job.clear()
+try await streamingJob.clear()
 ```
-
-During the job execution the transcription can be 
 
 
 ## Testing 
@@ -81,12 +80,10 @@ cd -
 ``` bash
 $ swift test
 ...
-􁁛  Test testAbort() passed after 0.138 seconds.
-􁁛  Suite HTTranscriberTests passed after 2.718 seconds.
-􁁛  Test run with 11 tests passed after 2.718 seconds.
+Test run with 11 tests passed after 2.718 seconds.
 ```
 
-The tests also show how to use HTKit in practice. The tests include file transcription and real-time transcription useing a simulated audio stream.
+The tests also show how to use HTKit in practice. The tests include file transcription and real-time transcription using a simulated audio stream.
 
 ## License
 
