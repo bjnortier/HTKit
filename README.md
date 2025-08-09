@@ -32,6 +32,7 @@ https://github.com/bjnortier/HTKit
 
 The high-level classes applicable to clients are:
 1. `HTTranscription`: Instances of this class will contain the transcription results. The results are a sequence of `HTTranscriptionSegment` objects, which contain the text and timestamps (in milliseconds) for each segment.
+1. `HTObservableTranscription`: An `@Observable` version of `HTTranscription` that provides a live transcription result, updated every 100ms. This is useful for SwiftUI views to observe the transcription results as they are produced (since HTTranscription isn't Observable).
 1. `HTFileJob`: An object that managers the transcription of a file (as the samples from the audio file). **NB** The audio files samples must be in 16-bit, 44kHz PCM format for Whisper.
 1. `HTStreamingJob`: An object that manages the transcription of a live audio stream (e.g. from the microphone). It handles the audio conversion and buffering for you. The `HTMicrophoneStreamingEngine` class manages streaming audio samples from the microphone.
 
