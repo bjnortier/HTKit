@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 @Observable
 public class HTJob: Identifiable {
-    public enum State: String {
+    public enum State: String, CaseIterable {
         case created
         case loadingModel
         case transcribing
