@@ -6,8 +6,8 @@
 //
 
 public protocol HTStreamingEngine {
-  func startStreaming(buffer: HTStreamingAudioBuffer) throws
-  func pauseStreaming() throws
-  func unpauseStreaming() throws
-  func stopStreaming() throws
+    func startStreaming(buffer: HTStreamingAudioBuffer) throws
+    func pauseStreaming() throws
+    func unpauseStreaming() throws
+    func stopStreaming() throws
 }

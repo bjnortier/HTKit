@@ -13,80 +13,80 @@ import SwiftUI
 // ensure that access to its properties is thread-safe, allowing for safe updates from
 // multiple threads, such as during streaming transcription processes.
 public final class HTTranscription: @unchecked Sendable {
-  // Private backing storage
-  private var _segments: [HTTranscriptionSegment] = []
-  private var _highWaterIndex: Int = 0
+    // Private backing storage
+    private var _segments: [HTTranscriptionSegment] = []
+    private var _highWaterIndex: Int = 0
 
-  var refreshID = UUID()
+    var refreshID = UUID()
 
-  // Concurrent queue for thread-safe access
-  private let queue = DispatchQueue(
-    label: "com.bjnortier.HTKit.TranscriptionQueue", attributes: .concurrent)
+    // Concurrent queue for thread-safe access
+    private let queue = DispatchQueue(
+        label: "com.bjnortier.HTKit.TranscriptionQueue", attributes: .concurrent)
 
-  // Thread-safe property access
-  public var segments: [HTTranscriptionSegment] {
-    get { queue.sync { _segments } }
-    set {
-      queue.async(flags: .barrier) {
-        self._segments = newValue
-        self.refreshID = UUID()
-      }
+    // Thread-safe property access
+    public var segments: [HTTranscriptionSegment] {
+        get { queue.sync { _segments } }
+        set {
+            queue.async(flags: .barrier) {
+                self._segments = newValue
+                self.refreshID = UUID()
+            }
+        }
     }
-  }
 
-  public init() {
-    self._segments = []
-    self._highWaterIndex = 0
-  }
-
-  // Get the accumulated transcrtiption as a single string
-  public func getText() -> String {
-    return queue.sync { _segments.map(\.text).joined() }
-  }
-
-  public func reset() {
-    queue.async(flags: .barrier) {
-      self._segments = []
-      self._highWaterIndex = 0
+    public init() {
+        self._segments = []
+        self._highWaterIndex = 0
     }
-  }
 
-  // Thread-safe append method for C++ callbacks
-  public func appendSegments(_ newSegments: [HTTranscriptionSegment]) {
-    queue.async(flags: .barrier) {
-      self._segments.append(contentsOf: newSegments)
+    // Get the accumulated transcrtiption as a single string
+    public func getText() -> String {
+        return queue.sync { _segments.map(\.text).joined() }
     }
-  }
 
-  public func appendAtHighWaterMark(
-    _ newSegments: [HTTranscriptionSegment], updateMark: Bool = false
-  ) {
+    public func reset() {
+        queue.async(flags: .barrier) {
+            self._segments = []
+            self._highWaterIndex = 0
+        }
+    }
 
-    queue.async(flags: .barrier) {
-      let count = self._segments.count
+    // Thread-safe append method for C++ callbacks
+    public func appendSegments(_ newSegments: [HTTranscriptionSegment]) {
+        queue.async(flags: .barrier) {
+            self._segments.append(contentsOf: newSegments)
+        }
+    }
 
-      var lastT1 = 0
-      let lastT1Index = self._highWaterIndex - 1
-      if lastT1Index >= 0, lastT1Index < count {
-        lastT1 = self._segments[lastT1Index].t1
-      }
-      let timeShiftedSegments =
-        newSegments
-        .map { segment in
-          HTTranscriptionSegment(
-            t0: segment.t0 + lastT1,
-            t1: segment.t1 + lastT1,
-            text: segment.text
-          )
+    public func appendAtHighWaterMark(
+        _ newSegments: [HTTranscriptionSegment], updateMark: Bool = false
+    ) {
+
+        queue.async(flags: .barrier) {
+            let count = self._segments.count
+
+            var lastT1 = 0
+            let lastT1Index = self._highWaterIndex - 1
+            if lastT1Index >= 0, lastT1Index < count {
+                lastT1 = self._segments[lastT1Index].t1
+            }
+            let timeShiftedSegments =
+                newSegments
+                .map { segment in
+                    HTTranscriptionSegment(
+                        t0: segment.t0 + lastT1,
+                        t1: segment.t1 + lastT1,
+                        text: segment.text
+                    )
+                }
+
+            self._segments.removeLast(count - self._highWaterIndex)
+            self._segments.append(contentsOf: timeShiftedSegments)
+            if updateMark {
+                self._highWaterIndex = self._segments.count
+            }
         }
 
-      self._segments.removeLast(count - self._highWaterIndex)
-      self._segments.append(contentsOf: timeShiftedSegments)
-      if updateMark {
-        self._highWaterIndex = self._segments.count
-      }
     }
-
-  }
 
 }
