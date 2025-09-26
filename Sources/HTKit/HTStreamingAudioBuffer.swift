@@ -21,76 +21,76 @@
 // that will be returned to alleviate issues with dropped words. This is a value
 // determined by empirical experimentation.
 public actor HTStreamingAudioBuffer {
-    private var buffer: [Float]
-    private var minSamplesSize: Int
-    private var frameSize: Int
-    private var overlapSize: Int
-    private var frameFromIndex: Int
-    private var lastToIndex: Int?
+  private var buffer: [Float]
+  private var minSamplesSize: Int
+  private var frameSize: Int
+  private var overlapSize: Int
+  private var frameFromIndex: Int
+  private var lastToIndex: Int?
 
-    public init(minSamplesSize: Int, frameSize: Int, overlapSize: Int) {
-        precondition(minSamplesSize < frameSize)
-        buffer = []
-        self.minSamplesSize = minSamplesSize
-        self.frameSize = frameSize
-        self.overlapSize = overlapSize
-        frameFromIndex = 0
-        lastToIndex = nil
+  public init(minSamplesSize: Int, frameSize: Int, overlapSize: Int) {
+    precondition(minSamplesSize < frameSize)
+    buffer = []
+    self.minSamplesSize = minSamplesSize
+    self.frameSize = frameSize
+    self.overlapSize = overlapSize
+    frameFromIndex = 0
+    lastToIndex = nil
+  }
+
+  public func append(_ samples: [Float]) {
+    buffer.append(contentsOf: samples)
+  }
+
+  public func getNextSamples() -> ([Float]?, Bool) {
+    if buffer.count == 0 {
+      return (samples: nil, isFrame: false)
+    }
+    // No samples added after the processing checkpoint yet.
+    if frameFromIndex == buffer.count {
+      return (samples: nil, isFrame: false)
     }
 
-    public func append(_ samples: [Float]) {
-        buffer.append(contentsOf: samples)
+    // Determine the range up to a max of "frameSize" samples
+    var from = frameFromIndex
+    let to = min(frameFromIndex + frameSize, buffer.count)
+
+    // Enough samples for a frame?
+    let isFrame = (to - from) == frameSize
+
+    // Add overlap after determine is it's a frame otherwise
+    // isFrame calculation becomes complicated to compensate
+    // for overlap. Don't go negative.
+    from = max(frameFromIndex - overlapSize, 0)
+
+    // Return a minimun number of samples
+    if (to - from) < minSamplesSize {
+      return (samples: nil, isFrame: false)
     }
 
-    public func getNextSamples() -> ([Float]?, Bool) {
-        if buffer.count == 0 {
-            return (samples: nil, isFrame: false)
-        }
-        // No samples added after the processing checkpoint yet.
-        if frameFromIndex == buffer.count {
-            return (samples: nil, isFrame: false)
-        }
-
-        // Determine the range up to a max of "frameSize" samples
-        var from = frameFromIndex
-        let to = min(frameFromIndex + frameSize, buffer.count)
-
-        // Enough samples for a frame?
-        let isFrame = (to - from) == frameSize
-
-        // Add overlap after determine is it's a frame otherwise
-        // isFrame calculation becomes complicated to compensate
-        // for overlap. Don't go negative.
-        from = max(frameFromIndex - overlapSize, 0)
-
-        // Return a minimun number of samples
-        if (to - from) < minSamplesSize {
-            return (samples: nil, isFrame: false)
-        }
-
-        // Already been transcribed
-        if let lastToIndex {
-            if lastToIndex == to {
-                return (samples: nil, isFrame: false)
-            }
-        }
-
-        let samples = Array(buffer[from..<to])
-        lastToIndex = to
-        if isFrame {
-            frameFromIndex = to
-        }
-
-        return (samples: samples, isFrame: isFrame)
+    // Already been transcribed
+    if let lastToIndex {
+      if lastToIndex == to {
+        return (samples: nil, isFrame: false)
+      }
     }
 
-    public func clear() {
-        buffer = []
-        self.reset()
+    let samples = Array(buffer[from..<to])
+    lastToIndex = to
+    if isFrame {
+      frameFromIndex = to
     }
 
-    public func reset() {
-        frameFromIndex = 0
-        lastToIndex = nil
-    }
+    return (samples: samples, isFrame: isFrame)
+  }
+
+  public func clear() {
+    buffer = []
+    self.reset()
+  }
+
+  public func reset() {
+    frameFromIndex = 0
+    lastToIndex = nil
+  }
 }

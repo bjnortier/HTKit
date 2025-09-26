@@ -8,13 +8,13 @@
 
 public struct HTTranscriptionSegment: Equatable, Hashable, Sendable {
 
-    public let t0: Int
-    public let t1: Int
-    public let text: String
+  public let t0: Int
+  public let t1: Int
+  public let text: String
 
-    public init(t0: Int, t1: Int, text: String) {
-        self.t0 = t0
-        self.t1 = t1
-        self.text = text
-    }
+  public init(t0: Int, t1: Int, text: String) {
+    self.t0 = t0
+    self.t1 = t1
+    self.text = text
+  }
 }

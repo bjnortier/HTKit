@@ -47,15 +47,11 @@ Both job types have similar semantics to start & stop transcriptions:
 
 ``` swift
 // Start the transcription. This will create a Swift Task to run the transcription in the background.
-let task = job.start(modelPath: String, options: HTTranscriber.Options)
+let task = try await job.start(modelPath: String, options: HTTranscriber.Options)
 // Wait for a file job to finish. 
 try await task.value
 // Stop the transcription. This will stop whisper.cpp 
 try await job.stop()
-// Restart the transcription. The transcription can be restarted with new options (e.g. using a different language)
-// or a different model. This will stop the existing task, wait for it to finish, then create a new transcription task.
-// If the model is the same it will be re-used.
-let task2 = job.restart(modelPath: String, options: HTTranscriber.Options) 
 ```
 
 A streaming transcription can also be cleared. This will clear the transcription buffer and clear the current transcription:

@@ -8,6 +8,6 @@ import Foundation
 import os
 
 let logger = Logger(
-    subsystem: "com.bjnortier.htkit",
-    category: "HTKit"
+  subsystem: "com.bjnortier.htkit",
+  category: "HTKit"
 )
