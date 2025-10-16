@@ -24,8 +24,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "whisper.xcframework",
-            url: "https://github.com/ggml-org/whisper.cpp/releases/download/v1.7.6/whisper-v1.7.6-xcframework.zip",
-            checksum: "9fcb28106d0b94a525e59bec057e35b57033195ac7408d7e1ab8e4b597cdfeb5"),
+            url: "https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.2/whisper-v1.8.2-xcframework.zip",
+            checksum: "3ffeec1df254d908f01ee3d87bf0aedb8fbc8f29cbf50dc8702741bb85381385"),
         .testTarget(
             name: "HTKitTests",
             dependencies: ["HTKit"],
