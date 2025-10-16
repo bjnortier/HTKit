@@ -54,19 +54,22 @@ public actor HTTranscriber {
         public let tokenTimestamps: Bool
         public let maxSegmentTokens: Int
         public let beamSize: Int
+        public let printTimings: Bool
 
         public init(
             audioLanguage: String = "auto",
             translateToEN: Bool = false,
             tokenTimestamps: Bool = false,
             maxSegmentTokens: Int = 0,
-            beamSize: Int = 5
+            beamSize: Int = 5,
+            printTimings: Bool = false
         ) {
             self.audioLanguage = audioLanguage
             self.translateToEN = translateToEN
             self.tokenTimestamps = tokenTimestamps
             self.maxSegmentTokens = maxSegmentTokens
             self.beamSize = beamSize
+            self.printTimings = printTimings
 
         }
     }
@@ -104,7 +107,6 @@ public actor HTTranscriber {
         transcription: HTTranscription,
         abortController: HTAbortController,
         options: Options,
-        printTimings: Bool = false
     ) throws {
         guard let contextWrapper else {
             throw HTError.modelNotLoaded
@@ -160,7 +162,7 @@ public actor HTTranscriber {
                 {
                     logger.error("Failed to run the model")
                 } else {
-                    if printTimings {
+                    if options.printTimings {
                         whisper_print_timings(contextWrapper.pointer)
                     }
                 }
